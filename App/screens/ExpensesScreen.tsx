@@ -2,10 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../hooks/useTheme';
 import { Transaction, useTransactions } from '../hooks/useTransactions';
+import { CURRENCIES, translations } from '../utils/i18n';
 
 export default function ExpensesScreen() {
   const { transactions, addTransaction, deleteTransaction, editTransaction } = useTransactions();
+  const { settings } = useUser();
+  const theme = useTheme();
+
+  const t = translations[settings.language] || translations.fr;
+  const currencySymbol = CURRENCIES.find(c => c.value === settings.currency)?.symbol || '€';
+
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
@@ -13,6 +22,12 @@ export default function ExpensesScreen() {
   const [isEditing, setIsEditing] = useState<string | null>(null);
 
   const expenses = transactions.filter(t => t.type === 'expense').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const mainBg = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
+  const cardBg = theme.isDark ? 'bg-[#1E1E1E] border-gray-800' : 'bg-white border-[#E6E6D8]'; 
+  const textColor = theme.isDark ? 'text-white' : 'text-[#3E3E34]';
+  const subTextColor = theme.isDark ? 'text-[#A0A0A0]' : 'text-[#8C8C7D]';
+  const inputBg = theme.isDark ? 'bg-[#121212] border-gray-700' : 'bg-[#F9F9F5] border-[#D9D9C2]';
 
   const handleAdd = () => {
     if (!title || !amount) return;
@@ -35,32 +50,32 @@ export default function ExpensesScreen() {
   };
 
   return (
-    <View className="flex-1 bg-[#121212] flex-col pt-12 px-5">
-      <Text className="text-white text-3xl font-bold mb-6">Dépenses</Text>
+    <View className={`flex-1 flex-col pt-12 px-5 ${mainBg}`}>
+      <Text className={`${textColor} text-3xl font-bold mb-6`}>{t.expenses}</Text>
 
       {/* Input Form */}
-      <View className="bg-[#1E1E1E] p-4 rounded-xl mb-6 space-y-3 border border-gray-800">
+      <View className={`${cardBg} p-4 rounded-xl mb-6 space-y-3 border`}>
         <TextInput 
-          placeholder="Titre (ex: Courses)" 
-          placeholderTextColor="#666"
-          className="bg-[#121212] text-white p-3 rounded-lg border border-gray-700"
+          placeholder={t.titlePlaceholder} 
+          placeholderTextColor={theme.isDark ? "#666" : "#A0A090"}
+          className={`${inputBg} ${textColor} p-3 rounded-lg border`}
           value={title}
           onChangeText={setTitle}
         />
         <View className="flex-row space-x-3">
              <TextInput 
-                placeholder="Montant (€)" 
-                placeholderTextColor="#666"
+                placeholder={`${t.amountPlaceholder} (${currencySymbol})`} 
+                placeholderTextColor={theme.isDark ? "#666" : "#A0A090"}
                 keyboardType="numeric"
-                className="bg-[#121212] text-white p-3 rounded-lg flex-1 border border-gray-700"
+                className={`${inputBg} ${textColor} p-3 rounded-lg flex-1 border`}
                 value={amount}
                 onChangeText={setAmount}
             />
              <Pressable 
                 onPress={() => setShowDatePicker(true)}
-                className="bg-[#121212] justify-center px-4 rounded-lg border border-gray-700"
+                className={`${inputBg} justify-center px-4 rounded-lg border`}
              >
-                 <Text className="text-white">{date.toLocaleDateString()}</Text>
+                 <Text className={textColor}>{date.toLocaleDateString()}</Text>
              </Pressable>
         </View>
 
@@ -77,11 +92,12 @@ export default function ExpensesScreen() {
         )}
 
         <Pressable onPress={handleAdd} className="bg-red-500 p-3 rounded-lg items-center mt-2 active:bg-red-600">
-          <Text className="text-white font-bold">{isEditing ? "Modifier" : "Ajouter la dépense"}</Text>
+          <Text className="text-white font-bold">{isEditing ? t.modify : t.addExpense}</Text>
         </Pressable>
+        {/* Cancel Edit Button */}
         {isEditing && (
             <Pressable onPress={() => { setIsEditing(null); setTitle(''); setAmount(''); }} className="items-center">
-                 <Text className="text-[#A0A0A0] text-xs">Annuler modification</Text>
+                 <Text className={`${subTextColor} text-xs`}>{t.cancelEdit}</Text>
             </Pressable>
         )}
       </View>
@@ -91,16 +107,16 @@ export default function ExpensesScreen() {
         data={expenses}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View className="flex-row justify-between items-center bg-[#1E1E1E] p-4 mb-3 rounded-xl border-l-4 border-l-red-500 border-t border-r border-b border-gray-800">
+          <View className={`flex-row justify-between items-center ${cardBg} p-4 mb-3 rounded-xl border-l-4 border-l-red-500 border-t border-r border-b`}>
             <View className="flex-1">
-              <Text className="text-white font-bold text-lg">{item.title}</Text>
-              <Text className="text-[#A0A0A0]">{new Date(item.date).toLocaleDateString()}</Text>
+              <Text className={`${textColor} font-bold text-lg`}>{item.title}</Text>
+              <Text className={subTextColor}>{new Date(item.date).toLocaleDateString()}</Text>
             </View>
             <View className="items-end">
-                <Text className="text-red-400 font-bold text-lg mb-1">-{item.amount} €</Text>
+                <Text className="text-red-400 font-bold text-lg mb-1">-{item.amount} {currencySymbol}</Text>
                 <View className="flex-row space-x-3">
                      <Pressable onPress={() => handleEditInit(item)}>
-                        <Ionicons name="pencil" size={20} color="#BB86FC" />
+                        <Ionicons name="pencil" size={20} color={theme.isDark ? "#BB86FC" : "#8B4513"} />
                      </Pressable>
                      <Pressable onPress={() => deleteTransaction(item.id)}>
                         <Ionicons name="trash" size={20} color="#ef4444" />
@@ -109,8 +125,9 @@ export default function ExpensesScreen() {
             </View>
           </View>
         )}
-        ListEmptyComponent={<Text className="text-[#A0A0A0] text-center mt-10">Aucune dépense ce mois-ci.</Text>}
+        ListEmptyComponent={<Text className={`${subTextColor} text-center mt-10`}>{t.noExpenses}</Text>}
       />
     </View>
   );
 }
+

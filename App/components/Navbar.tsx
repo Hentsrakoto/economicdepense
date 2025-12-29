@@ -3,9 +3,20 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+import { useUser } from '../context/UserContext';
+import { useTheme } from '../hooks/useTheme';
+
+  const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const { toggleTheme } = useUser();
+  const theme = useTheme();
+  const { isDark } = theme;
+
+  const bgColor = isDark ? 'bg-[#1E1E1E] border-gray-800' : 'bg-[#F2F2EB] border-[#D9D9C2]';
+  const activeColor = isDark ? '#E91E63' : '#8B4513';
+  const inactiveColor = isDark ? '#A0A0A0' : '#8C8C7D';
+
   return (
-    <View className="flex-row bg-dark-eval-1 bg-[#1E1E1E] border-t border-gray-800 pb-2 pt-3 justify-around items-center">
+    <View className={`flex-row border-t pb-2 pt-3 justify-around items-center ${bgColor}`}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const label =
@@ -35,6 +46,9 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
         else if (route.name === 'Incomes') iconName = isFocused ? 'cash' : 'cash-outline'; 
         else if (route.name === 'Analytics') iconName = isFocused ? 'pie-chart' : 'pie-chart-outline';
         else if (route.name === 'History') iconName = isFocused ? 'time' : 'time-outline';
+        else if (route.name === 'Settings') iconName = isFocused ? 'settings' : 'settings-outline';
+
+        const color = isFocused ? activeColor : inactiveColor;
 
         return (
           <Pressable
@@ -45,14 +59,29 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
              <Ionicons 
                 name={iconName} 
                 size={26} 
-                color={isFocused ? '#E91E63' : '#A0A0A0'} 
+                color={color} 
              />
-            <Text className={`text-xs ${isFocused ? 'text-[#E91E63]' : 'text-[#A0A0A0]'}`}>
+            <Text style={{ color }} className="text-xs">
               {label as string}
             </Text>
           </Pressable>
         );
       })}
+      
+      {/* Theme Toggle Button */}
+      <Pressable
+        onPress={toggleTheme}
+        className="items-center justify-center space-y-1"
+      >
+         <Ionicons 
+            name={isDark ? 'sunny' : 'moon'} 
+            size={26} 
+            color={inactiveColor} 
+         />
+        <Text style={{ color: inactiveColor }} className="text-xs">
+          {isDark ? 'Light' : 'Dark'}
+        </Text>
+      </Pressable>
     </View>
   );
 };
