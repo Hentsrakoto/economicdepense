@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { FlatList, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -50,7 +51,7 @@ export default function IncomeScreen() {
   const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
 
   return (
-    <View className={`flex-1 pt-12 px-5 ${bgColor}`}>
+    <SafeAreaView className={`flex-1 pt-4 px-5 ${bgColor}`} edges={['top']}>
       <Typography variant="h2" className="mb-6">{t.incomes}</Typography>
 
       {/* Input Form */}
@@ -106,7 +107,6 @@ export default function IncomeScreen() {
                 <Button 
                     variant="outline"
                     onPress={() => setShowDatePicker(true)}
-                    className="mt-[5px]" // Visual alignment tweak
                 >
                     {date.toLocaleDateString()}
                 </Button>
@@ -164,6 +164,6 @@ export default function IncomeScreen() {
         )}
         ListEmptyComponent={<Typography className="text-center mt-10 text-gray-400">{t.noIncomes}</Typography>}
       />
-    </View>
+    </SafeAreaView>
   );
 }

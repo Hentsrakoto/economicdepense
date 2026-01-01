@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '../components/ui/Card';
 import { Typography } from '../components/ui/Typography';
 import { useUser } from '../context/UserContext';
@@ -22,8 +23,8 @@ export default function HomeScreen() {
   const mainBg = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
 
   return (
-    <View className={`flex-1 ${mainBg}`}>
-      <ScrollView className="px-5 pt-12" showsVerticalScrollIndicator={false}>
+    <SafeAreaView className={`flex-1 ${mainBg}`} edges={['top']}>
+      <ScrollView className="px-5 pt-4" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="mb-8">
           <Typography variant="h3" className="mb-1">{t.welcome},</Typography>
@@ -44,21 +45,6 @@ export default function HomeScreen() {
            </Typography>
         </View>
 
-         {/* Summary Actions */}
-        <View className="flex-row justify-between mb-8">
-             <Card className="flex-1 mr-3 items-center py-4 border-green-200 bg-green-50 dark:bg-green-900/10 dark:border-green-900">
-                <View className="bg-green-100 dark:bg-green-900/30 p-3 rounded-full mb-2">
-                    <Ionicons name="arrow-up" size={24} color="#16A34A" />
-                </View>
-                <Typography className="text-green-600 dark:text-green-400 font-bold">{t.incomes}</Typography>
-            </Card>
-            <Card className="flex-1 ml-3 items-center py-4 border-red-200 bg-red-50 dark:bg-red-900/10 dark:border-red-900">
-                <View className="bg-red-100 dark:bg-red-900/30 p-3 rounded-full mb-2">
-                    <Ionicons name="arrow-down" size={24} color="#DC2626" />
-                </View>
-                <Typography className="text-red-600 dark:text-red-400 font-bold">{t.expenses}</Typography>
-            </Card>
-        </View>
 
         {/* Recent Transactions */}
         <View className="mb-6">
@@ -91,6 +77,6 @@ export default function HomeScreen() {
         </View>
         <View className="h-20" /> 
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { SectionList, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
 import { useTransactions } from '../hooks/useTransactions';
@@ -35,8 +36,8 @@ export default function HistoryScreen() {
   const headerText = theme.isDark ? 'text-[#BB86FC]' : 'text-[#8B4513]';
 
   return (
-    <View className={`flex-1 pt-12 px-5 ${mainBg}`}>
-      <Text className={`${textColor} text-3xl font-bold mb-6`}>{t.history}</Text>
+    <SafeAreaView className={`flex-1 px-5 ${mainBg}`} edges={['top']}>
+      <Text className={`${textColor} text-3xl font-bold mb-6 mt-4`}>{t.history}</Text>
 
       <SectionList
         sections={sections}
@@ -64,7 +65,8 @@ export default function HistoryScreen() {
             </View>
         )}
         ListEmptyComponent={<Text className={`${subTextColor} text-center mt-20`}>{t.noHistory}</Text>}
+        contentContainerStyle={{ paddingBottom: 100 }}
       />
-    </View>
+    </SafeAreaView>
   );
 }

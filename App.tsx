@@ -1,4 +1,4 @@
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,7 +18,7 @@ import OnboardingScreen from './App/screens/OnboardingScreen';
 import SettingsScreen from './App/screens/SettingsScreen';
 import { translations } from './App/utils/i18n';
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 
 function RootNavigator() {
   const { settings, loading } = useUser();
@@ -40,9 +40,12 @@ function RootNavigator() {
     <TransactionProvider>
       <NavigationContainer>
         <Tab.Navigator
+          tabBarPosition="bottom"
           tabBar={(props) => <Navbar {...props} />}
+          initialRouteName="Home"
           screenOptions={{
-            headerShown: false,
+            swipeEnabled: true,
+            tabBarIndicatorStyle: { height: 0 }, // Hide default indicator if any
           }}
         >
           <Tab.Screen name="Home" component={HomeScreen} options={{ title: t.home }} />

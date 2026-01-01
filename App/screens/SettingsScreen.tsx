@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -51,13 +52,13 @@ export default function SettingsScreen() {
     const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
 
     return (
-        <View className={`flex-1 pt-12 px-5 ${bgColor}`}>
-            <Typography variant="h2" className="mb-6">{t.settings}</Typography>
+        <SafeAreaView className={`flex-1 px-5 ${bgColor}`} edges={['top']}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 16 }}>
+                <Typography variant="h2" className="mb-6">{t.settings}</Typography>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
                 {message && (
                     <Card className="bg-green-500 border-green-600 mb-4 p-3">
-                        <Typography className="text-white font-bold text-center">{message}</Typography>
+                        <Typography className="text-primary font-bold text-center">{message}</Typography>
                     </Card>
                 )}
 
@@ -159,6 +160,6 @@ export default function SettingsScreen() {
                 </Card>
                 <View className="h-20" /> 
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }

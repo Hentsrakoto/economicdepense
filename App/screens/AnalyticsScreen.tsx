@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
 import { useTransactions } from '../hooks/useTransactions';
@@ -40,47 +41,50 @@ export default function AnalyticsScreen() {
   const subTextColor = theme.isDark ? 'text-[#A0A0A0]' : 'text-[#8C8C7D]';
 
   return (
-    <View className={`flex-1 pt-12 px-5 ${mainBg}`}>
-      <Text className={`${textColor} text-3xl font-bold mb-2`}>{t.analysis}</Text>
-      <Text className={`${subTextColor} text-lg mb-6 capitalize`}>{getMonthName(currentMonth)} {currentYear}</Text>
+    <SafeAreaView className={`flex-1 px-5 ${mainBg}`} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 16 }}>
+        <Text className={`${textColor} text-3xl font-bold mb-2`}>{t.analysis}</Text>
+        <Text className={`${subTextColor} text-lg mb-6 capitalize`}>{getMonthName(currentMonth)} {currentYear}</Text>
 
-      {/* Summary Cards */}
-      <View className="flex-row justify-between mb-6">
-           <View className={`${cardBg} p-5 rounded-2xl flex-1 mr-3 border`}>
-               <Text className={`${subTextColor} mb-2 font-medium`}>{t.incomes}</Text>
-               <Text className="text-green-500 text-2xl font-bold">+{income} {currencySymbol}</Text>
-           </View>
-           <View className={`${cardBg} p-5 rounded-2xl flex-1 ml-3 border`}>
-               <Text className={`${subTextColor} mb-2 font-medium`}>{t.expenses}</Text>
-               <Text className="text-red-500 text-2xl font-bold">-{expense} {currencySymbol}</Text>
-           </View>
-      </View>
+        {/* Summary Cards */}
+        <View className="flex-row justify-between mb-6">
+            <View className={`${cardBg} p-5 rounded-2xl flex-1 mr-3 border`}>
+                <Text className={`${subTextColor} mb-2 font-medium`}>{t.incomes}</Text>
+                <Text className="text-green-500 text-2xl font-bold">+{income} {currencySymbol}</Text>
+            </View>
+            <View className={`${cardBg} p-5 rounded-2xl flex-1 ml-3 border`}>
+                <Text className={`${subTextColor} mb-2 font-medium`}>{t.expenses}</Text>
+                <Text className="text-red-500 text-2xl font-bold">-{expense} {currencySymbol}</Text>
+            </View>
+        </View>
 
-      {/* Net Result */}
-      <View className={`${cardBg} p-6 rounded-2xl mb-8 border items-center`}>
-          <Text className={`${subTextColor} mb-2 font-medium uppercase tracking-widest`}>{t.monthResult}</Text>
-          <Text className={`text-4xl font-extrabold ${total >= 0 ? textColor : 'text-red-500'}`}>
-              {total > 0 ? '+' : ''}{total} {currencySymbol}
-          </Text>
-      </View>
+        {/* Net Result */}
+        <View className={`${cardBg} p-6 rounded-2xl mb-8 border items-center`}>
+            <Text className={`${subTextColor} mb-2 font-medium uppercase tracking-widest`}>{t.monthResult}</Text>
+            <Text className={`text-4xl font-extrabold ${total >= 0 ? textColor : 'text-red-500'}`}>
+                {total > 0 ? '+' : ''}{total} {currencySymbol}
+            </Text>
+        </View>
 
-      {/* Progress Bar */}
-      <View className="mb-8">
-          <View className="flex-row justify-between mb-2">
-            <Text className={`${textColor} font-bold`}>{t.expenses} / {t.incomes}</Text>
-            <Text className={subTextColor}>{percentage.toFixed(1)}%</Text>
-          </View>
-          <View className="h-4 bg-gray-300 rounded-full overflow-hidden">
-             <View 
-                className="h-full bg-red-500 rounded-full" 
-                style={{ width: `${Math.min(percentage, 100)}%` }} 
-             />
-          </View>
-          {percentage > 100 && (
-              <Text className="text-red-500 mt-2 text-sm font-bold">{t.warningOverBudget}</Text>
-          )}
-      </View>
+        {/* Progress Bar */}
+        <View className="mb-8">
+            <View className="flex-row justify-between mb-2">
+              <Text className={`${textColor} font-bold`}>{t.expenses} / {t.incomes}</Text>
+              <Text className={subTextColor}>{percentage.toFixed(1)}%</Text>
+            </View>
+            <View className="h-4 bg-gray-300 rounded-full overflow-hidden">
+              <View 
+                  className="h-full bg-red-500 rounded-full" 
+                  style={{ width: `${Math.min(percentage, 100)}%` }} 
+              />
+            </View>
+            {percentage > 100 && (
+                <Text className="text-red-500 mt-2 text-sm font-bold">{t.warningOverBudget}</Text>
+            )}
+        </View>
+        <View className="h-20" />
+      </ScrollView>
 
-    </View>
+    </SafeAreaView>
   );
 }

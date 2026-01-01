@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { MaterialTopTabBarProps } from '@react-navigation/material-top-tabs';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
@@ -9,10 +9,13 @@ import { useTheme } from '../hooks/useTheme';
 
 import { translations } from '../utils/i18n';
 
-const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const Navbar = ({ state, descriptors, navigation }: MaterialTopTabBarProps) => {
   const { toggleTheme, settings } = useUser(); // Access settings for language
   const theme = useTheme();
   const { isDark } = theme;
+  const insets = useSafeAreaInsets(); // Get safe area insets
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const t = translations[settings.language] || translations.fr; // Get current translation
@@ -44,8 +47,8 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
     <View className="z-50">
        {/* Animated Menu */}
        <Animated.View 
-            style={[animatedMenuStyle, styles.menuContainer]} 
-            className={`absolute bottom-20 right-5 p-4 rounded-2xl shadow-xl border ${menuBgColor} ${borderColor}`}
+            style={[animatedMenuStyle, styles.menuContainer, { bottom: 80 + insets.bottom }]} 
+            className={`absolute right-5 p-4 rounded-2xl shadow-xl border ${menuBgColor} ${borderColor}`}
        >
            {/* Settings Item */}
            <Pressable 
@@ -73,7 +76,10 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
            </Pressable>
        </Animated.View>
 
-      <View className={`flex-row border-t pb-2 pt-3 justify-around items-center ${bgColor}`}>
+      <View 
+        className={`flex-row border-t pt-3 justify-around items-center ${bgColor}`}
+        style={{ paddingBottom: Math.max(insets.bottom, 12) }} // Dynamic bottom padding
+      >
         {state.routes.map((route, index) => {
           // Hide Settings from main bar
           if (route.name === 'Settings') return null;

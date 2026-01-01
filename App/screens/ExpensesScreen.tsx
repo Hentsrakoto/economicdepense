@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
 import { FlatList, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -50,8 +51,8 @@ export default function ExpensesScreen() {
   const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
 
   return (
-    <View className={`flex-1 flex-col pt-12 px-5 ${bgColor}`}>
-      <Typography variant="h2" className="mb-6">{t.expenses}</Typography>
+    <SafeAreaView className={`flex-1 flex-col px-5 ${bgColor}`} edges={['top']}>
+      <Typography variant="h2" className="mb-6 mt-4">{t.expenses}</Typography>
 
       {/* Input Form */}
       <Card className="mb-6 border">
@@ -74,7 +75,6 @@ export default function ExpensesScreen() {
                 <Button 
                     variant="outline"
                     onPress={() => setShowDatePicker(true)}
-                    className="mt-[5px]" // Align
                 >
                     {date.toLocaleDateString()}
                 </Button>
@@ -132,7 +132,7 @@ export default function ExpensesScreen() {
         )}
         ListEmptyComponent={<Typography className="text-center mt-10 text-gray-400">{t.noExpenses}</Typography>}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
