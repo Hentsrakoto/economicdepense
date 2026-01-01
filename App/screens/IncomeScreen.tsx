@@ -1,7 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import React, { useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, TouchableOpacity, View } from 'react-native';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Typography } from '../components/ui/Typography';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
 import { Transaction, useTransactions } from '../hooks/useTransactions';
@@ -21,12 +26,6 @@ export default function IncomeScreen() {
   const [isEditing, setIsEditing] = useState<string | null>(null);
 
   const incomes = transactions.filter(t => t.type === 'income').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const mainBg = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
-  const cardBg = theme.isDark ? 'bg-[#1E1E1E] border-gray-800' : 'bg-white border-[#E6E6D8]'; 
-  const textColor = theme.isDark ? 'text-white' : 'text-[#3E3E34]';
-  const subTextColor = theme.isDark ? 'text-[#A0A0A0]' : 'text-[#8C8C7D]';
-  const inputBg = theme.isDark ? 'bg-[#121212] border-gray-700' : 'bg-[#F9F9F5] border-[#D9D9C2]';
 
   const handleAdd = () => {
     if (!title || !amount) return;
@@ -48,82 +47,122 @@ export default function IncomeScreen() {
     setIsEditing(t.id);
   };
 
+  const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
+
   return (
-    <View className={`flex-1 pt-12 px-5 ${mainBg}`}>
-      <Text className={`${textColor} text-3xl font-bold mb-6`}>{t.incomes}</Text>
+    <View className={`flex-1 pt-12 px-5 ${bgColor}`}>
+      <Typography variant="h2" className="mb-6">{t.incomes}</Typography>
 
       {/* Input Form */}
-      <View className={`${cardBg} p-4 rounded-xl mb-6 space-y-3 border`}>
-        <TextInput 
-          placeholder={t.sourcePlaceholder} 
-          placeholderTextColor={theme.isDark ? "#666" : "#A0A090"}
-          className={`${inputBg} ${textColor} p-3 rounded-lg border`}
-          value={title}
-          onChangeText={setTitle}
-        />
-        <View className="flex-row space-x-3">
-             <TextInput 
-                placeholder={`${t.amountPlaceholder} (${currencySymbol})`} 
-                placeholderTextColor={theme.isDark ? "#666" : "#A0A090"}
-                keyboardType="numeric"
-                className={`${inputBg} ${textColor} p-3 rounded-lg flex-1 border`}
-                value={amount}
-                onChangeText={setAmount}
+      <Card className="mb-6 border">
+        <View className="space-y-4">
+            {settings.revenueTypes && settings.revenueTypes.length > 0 ? (
+                // Dropdown Select (Simple implementation via Badges)
+                <View>
+                    <Typography variant="caption" className="mb-1 font-medium">{t.incomeType}</Typography>
+                    <View className="flex-row flex-wrap gap-2">
+                        {settings.revenueTypes.map((type) => (
+                            <Badge
+                                key={type}
+                                selected={title === type}
+                                onPress={() => setTitle(type)}
+                            >
+                                {type}
+                            </Badge>
+                        ))}
+                    </View>
+                </View>
+            ) : (
+                // Badges + Input (Default behavior)
+                <View>
+                    <View className="flex-row flex-wrap gap-2 mb-2">
+                        {['Salaire', 'Vente', 'Cadeau', 'Remboursement'].map(defaultType => (
+                            <Badge 
+                                key={defaultType} 
+                                selected={title === defaultType}
+                                onPress={() => setTitle(defaultType)}
+                                className={title === defaultType ? 'bg-green-600 border-green-600' : ''}
+                            >
+                                {defaultType}
+                            </Badge>
+                        ))}
+                    </View>
+                    <Input 
+                        placeholder={t.sourcePlaceholder} 
+                        value={title}
+                        onChangeText={setTitle}
+                    />
+                </View>
+            )}
+
+            <View className="flex-row space-x-3">
+                <Input
+                    containerClassName="flex-1"
+                    placeholder={`${t.amountPlaceholder} (${currencySymbol})`} 
+                    keyboardType="numeric"
+                    value={amount}
+                    onChangeText={setAmount}
+                />
+                <Button 
+                    variant="outline"
+                    onPress={() => setShowDatePicker(true)}
+                    className="mt-[5px]" // Visual alignment tweak
+                >
+                    {date.toLocaleDateString()}
+                </Button>
+            </View>
+
+            {showDatePicker && (
+            <DateTimePicker
+                value={date}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) setDate(selectedDate);
+                }}
             />
-             <Pressable 
-                onPress={() => setShowDatePicker(true)}
-                className={`${inputBg} justify-center px-4 rounded-lg border`}
-             >
-                 <Text className={textColor}>{date.toLocaleDateString()}</Text>
-             </Pressable>
+            )}
+
+            <Button onPress={handleAdd} className="bg-green-600">
+                {isEditing ? t.modify : t.addIncome}
+            </Button>
+            
+            {isEditing && (
+                <TouchableOpacity onPress={() => { setIsEditing(null); setTitle(''); setAmount(''); }} className="items-center">
+                    <Typography variant="caption">{t.cancelEdit}</Typography>
+                </TouchableOpacity>
+            )}
         </View>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="default"
-            onChange={(event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDate(selectedDate);
-            }}
-          />
-        )}
-
-        <Pressable onPress={handleAdd} className="bg-green-500 p-3 rounded-lg items-center mt-2 active:bg-green-600">
-          <Text className="text-white font-bold">{isEditing ? t.modify : t.addIncome}</Text>
-        </Pressable>
-        {isEditing && (
-            <Pressable onPress={() => { setIsEditing(null); setTitle(''); setAmount(''); }} className="items-center">
-                 <Text className={`${subTextColor} text-xs`}>{t.cancelEdit}</Text>
-            </Pressable>
-        )}
-      </View>
+      </Card>
 
       {/* List */}
       <FlatList
+        showsVerticalScrollIndicator={false}
         data={incomes}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View className={`flex-row justify-between items-center ${cardBg} p-4 mb-3 rounded-xl border-l-4 border-l-green-500 border-t border-r border-b`}>
-             <View className="flex-1">
-              <Text className={`${textColor} font-bold text-lg`}>{item.title}</Text>
-              <Text className={subTextColor}>{new Date(item.date).toLocaleDateString()}</Text>
-            </View>
-            <View className="items-end">
-                <Text className="text-green-400 font-bold text-lg mb-1">+{item.amount} {currencySymbol}</Text>
-                <View className="flex-row space-x-3">
-                     <Pressable onPress={() => handleEditInit(item)}>
-                        <Ionicons name="pencil" size={20} color={theme.isDark ? "#BB86FC" : "#8B4513"} />
-                     </Pressable>
-                     <Pressable onPress={() => deleteTransaction(item.id)}>
-                        <Ionicons name="trash" size={20} color="#ef4444" />
-                     </Pressable>
+          <Card className="mb-3 border-l-4 border-l-green-500 py-3">
+             <View className="flex-row justify-between items-center">
+                 <View className="flex-1">
+                  <Typography variant="h4">{item.title}</Typography>
+                  <Typography variant="caption">{new Date(item.date).toLocaleDateString()}</Typography>
                 </View>
-            </View>
-          </View>
+                <View className="items-end">
+                    <Typography className="text-green-500 font-bold text-lg mb-1">+{item.amount} {currencySymbol}</Typography>
+                    <View className="flex-row space-x-3">
+                         <TouchableOpacity onPress={() => handleEditInit(item)}>
+                            <Ionicons name="pencil" size={20} color={theme.isDark ? "#BB86FC" : "#8B4513"} />
+                         </TouchableOpacity>
+                         <TouchableOpacity onPress={() => deleteTransaction(item.id)}>
+                            <Ionicons name="trash" size={20} color="#ef4444" />
+                         </TouchableOpacity>
+                    </View>
+                </View>
+             </View>
+          </Card>
         )}
-        ListEmptyComponent={<Text className={`${subTextColor} text-center mt-10`}>{t.noIncomes}</Text>}
+        ListEmptyComponent={<Typography className="text-center mt-10 text-gray-400">{t.noIncomes}</Typography>}
       />
     </View>
   );

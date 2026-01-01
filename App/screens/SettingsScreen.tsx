@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Typography } from '../components/ui/Typography';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
 import { CURRENCIES, Currency, LANGUAGES, Language, translations } from '../utils/i18n';
 
-// Constants defined in the file scope as per request
+// Constants
 const REGION_OPTIONS = [
     { label: 'Europe (Français)', value: 'fr', region: 'Europe', nationality: 'Européen' },
     { label: 'International (English)', value: 'en', region: 'International', nationality: 'International' },
@@ -21,6 +26,9 @@ export default function SettingsScreen() {
     const [firstName, setFirstName] = useState(settings.firstName);
     const [language, setLanguage] = useState<Language>(settings.language);
     const [currency, setCurrency] = useState<Currency>(settings.currency);
+    const [principalFund, setPrincipalFund] = useState(settings.principalFund?.toString() || '0');
+    const [revenueTypes, setRevenueTypes] = useState<string[]>(settings.revenueTypes || []);
+    const [newRevenueType, setNewRevenueType] = useState('');
     const [message, setMessage] = useState<string | null>(null);
 
     const handleSave = async () => {
@@ -31,93 +39,126 @@ export default function SettingsScreen() {
             firstName,
             language,
             currency,
+            principalFund: parseFloat(principalFund) || 0,
+            revenueTypes,
             region: selectedRegionData ? selectedRegionData.region : 'International',
             nationality: selectedRegionData ? selectedRegionData.nationality : 'International',
         });
         setMessage(t.saveSuccess);
-        
-        // Hide message after 3 seconds
-        setTimeout(() => {
-            setMessage(null);
-        }, 3000);
+        setTimeout(() => setMessage(null), 3000);
     };
 
     const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
-    const cardBg = theme.isDark ? 'bg-[#1E1E1E] border-gray-800' : 'bg-white border-[#E6E6D8]';
-    const textColor = theme.isDark ? 'text-white' : 'text-[#3E3E34]';
-    const subTextColor = theme.isDark ? 'text-[#A0A0A0]' : 'text-[#8C8C7D]';
-    const inputBg = theme.isDark ? 'bg-[#121212] border-gray-700' : 'bg-[#F9F9F5] border-[#D9D9C2]';
-    const activeChipBg = theme.isDark ? 'bg-blue-600 border-blue-600' : 'bg-[#8B4513] border-[#8B4513]';
-    const activeChipText = 'text-white font-bold';
-    
+
     return (
         <View className={`flex-1 pt-12 px-5 ${bgColor}`}>
-            <Text className={`${textColor} text-3xl font-bold mb-6`}>{t.settings}</Text>
+            <Typography variant="h2" className="mb-6">{t.settings}</Typography>
 
-            {message && (
-                <View className="bg-green-500 p-3 rounded-lg mb-4">
-                    <Text className="text-white text-center font-bold">{message}</Text>
-                </View>
-            )}
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {message && (
+                    <Card className="bg-green-500 border-green-600 mb-4 p-3">
+                        <Typography className="text-white font-bold text-center">{message}</Typography>
+                    </Card>
+                )}
 
-            <View className={`${cardBg} p-5 rounded-2xl border space-y-4`}>
-                {/* Name */}
-                <View>
-                    <Text className={`${subTextColor} mb-1 ml-1`}>{t.name}</Text>
-                    <TextInput
-                        className={`${inputBg} ${textColor} p-3 rounded-xl border`}
-                        value={name}
-                        onChangeText={setName}
-                    />
-                </View>
+                <Card className="mb-8">
+                    <View className="space-y-4">
+                        <Input
+                            label={t.name}
+                            value={name}
+                            onChangeText={setName}
+                        />
+                        <Input
+                            label={t.firstName}
+                            value={firstName}
+                            onChangeText={setFirstName}
+                        />
 
-                {/* First Name */}
-                <View>
-                    <Text className={`${subTextColor} mb-1 ml-1`}>{t.firstName}</Text>
-                    <TextInput
-                        className={`${inputBg} ${textColor} p-3 rounded-xl border`}
-                        value={firstName}
-                        onChangeText={setFirstName}
-                    />
-                </View>
+                        {/* Language */}
+                        <View>
+                            <Typography variant="caption" className="mb-2 ml-1 font-medium">{t.preferredLanguage}</Typography>
+                            <View className="flex-row flex-wrap gap-2">
+                                {LANGUAGES.map((lang) => (
+                                    <Badge
+                                        key={lang.value}
+                                        selected={language === lang.value}
+                                        onPress={() => setLanguage(lang.value as Language)}
+                                    >
+                                        {lang.label}
+                                    </Badge>
+                                ))}
+                            </View>
+                        </View>
 
-                {/* Language */}
-                <View>
-                    <Text className={`${subTextColor} mb-2 ml-1`}>{t.preferredLanguage}</Text>
-                    <View className="flex-row flex-wrap gap-2">
-                        {LANGUAGES.map((lang) => (
-                            <TouchableOpacity
-                                key={lang.value}
-                                onPress={() => setLanguage(lang.value as Language)}
-                                className={`px-3 py-2 rounded-full border ${language === lang.value ? activeChipBg : `${inputBg}`}`}
-                            >
-                                <Text className={language === lang.value ? activeChipText : textColor}>{lang.label}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {/* Currency */}
+                        <View>
+                            <Typography variant="caption" className="mb-2 ml-1 font-medium">{t.preferredCurrency}</Typography>
+                            <View className="flex-row flex-wrap gap-2">
+                                {CURRENCIES.map((curr) => (
+                                    <Badge
+                                        key={curr.value}
+                                        selected={currency === curr.value}
+                                        onPress={() => setCurrency(curr.value as Currency)}
+                                    >
+                                        {`${curr.symbol} ${curr.label.split(' ')[0]}`}
+                                    </Badge>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* Principal Fund */}
+                        <Input
+                            label={t.principalFund}
+                            value={principalFund}
+                            onChangeText={setPrincipalFund}
+                            keyboardType="numeric"
+                            placeholder="0.00"
+                        />
+
+                        {/* Revenue Types */}
+                        <View>
+                            <Typography variant="caption" className="mb-2 ml-1 font-medium">{t.revenueTypes}</Typography>
+                            <View className="flex-row flex-wrap gap-2 mb-3">
+                                {revenueTypes.map((type, index) => (
+                                    <Badge
+                                        key={index}
+                                        variant="secondary"
+                                        onPress={() => setRevenueTypes(revenueTypes.filter((_, i) => i !== index))}
+                                    >
+                                        {`${type} ✕`}
+                                    </Badge>
+                                ))}
+                            </View>
+
+                            <View className="flex-row space-x-2 items-center">
+                                <Input
+                                    containerClassName="flex-1"
+                                    value={newRevenueType}
+                                    onChangeText={setNewRevenueType}
+                                    placeholder={t.newRevenueType}
+                                />
+                                <Button
+                                    size="icon"
+                                    className="rounded-xl w-12 h-12"
+                                    onPress={() => {
+                                        if (newRevenueType.trim()) {
+                                            setRevenueTypes([...revenueTypes, newRevenueType.trim()]);
+                                            setNewRevenueType('');
+                                        }
+                                    }}
+                                >
+                                    +
+                                </Button>
+                            </View>
+                        </View>
+
+                        <Button onPress={handleSave} className="mt-4 bg-green-600">
+                            {t.save}
+                        </Button>
                     </View>
-                </View>
-
-                {/* Currency */}
-                <View>
-                    <Text className={`${subTextColor} mb-2 ml-1`}>{t.preferredCurrency}</Text>
-                     <View className="flex-row flex-wrap gap-2">
-                        {CURRENCIES.map((curr) => (
-                             <TouchableOpacity
-                                key={curr.value}
-                                onPress={() => setCurrency(curr.value as Currency)}
-                                className={`px-3 py-2 rounded-full border ${currency === curr.value ? activeChipBg : `${inputBg}`}`}
-                            >
-                                <Text className={currency === curr.value ? activeChipText : textColor}>{curr.symbol} {curr.label.split(' ')[0]}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Save Button */}
-                <Pressable onPress={handleSave} className="bg-green-500 p-4 rounded-xl items-center mt-4 active:bg-green-600">
-                    <Text className="text-white font-bold text-lg">{t.save}</Text>
-                </Pressable>
-            </View>
+                </Card>
+                <View className="h-20" /> 
+            </ScrollView>
         </View>
     );
 }

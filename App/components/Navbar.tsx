@@ -7,11 +7,15 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } fr
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
 
+import { translations } from '../utils/i18n';
+
 const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-  const { toggleTheme } = useUser();
+  const { toggleTheme, settings } = useUser(); // Access settings for language
   const theme = useTheme();
   const { isDark } = theme;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const t = translations[settings.language] || translations.fr; // Get current translation
 
   const menuScale = useSharedValue(0);
   const menuOpacity = useSharedValue(0);
@@ -19,7 +23,7 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const toggleMenu = () => {
     const isOpen = !isMenuOpen;
     setIsMenuOpen(isOpen);
-    menuScale.value = withSpring(isOpen ? 1 : 0, { damping: 15 });
+    menuScale.value = withSpring(isOpen ? 1 : 0, { damping: 50, stiffness: 300 });
     menuOpacity.value = withTiming(isOpen ? 1 : 0, { duration: 200 });
   };
 
@@ -52,7 +56,7 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
                 className="flex-row items-center space-x-3 mb-3"
             >
                <Ionicons name="settings-outline" size={24} color={inactiveColor} />
-               <Text className={`${isDark ? 'text-white' : 'text-[#3E3E34]'} font-medium`}>Paramètres</Text>
+               <Text className={`${isDark ? 'text-white' : 'text-[#3E3E34]'} font-medium`}>{t.settings}</Text>
            </Pressable>
 
            <View className={`h-[1px] w-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} mb-3`} />
@@ -64,7 +68,7 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
             >
                <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={24} color={inactiveColor} />
                <Text className={`${isDark ? 'text-white' : 'text-[#3E3E34]'} font-medium`}>
-                   {isDark ? 'Mode Clair' : 'Mode Sombre'}
+                   {isDark ? t.lightMode : t.darkMode}
                </Text>
            </Pressable>
        </Animated.View>
@@ -75,12 +79,15 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
           if (route.name === 'Settings') return null;
 
           const { options } = descriptors[route.key];
-          const label =
-            options.tabBarLabel !== undefined
-              ? options.tabBarLabel
-              : options.title !== undefined
-              ? options.title
-              : route.name;
+          
+          let label = options.tabBarLabel || options.title || route.name;
+          // Apply Translation to known routes
+          if (route.name === 'Home') label = t.home;
+          else if (route.name === 'Expenses') label = t.expenses;
+          else if (route.name === 'Incomes') label = t.incomes;
+          else if (route.name === 'History') label = t.history;
+          else if (route.name === 'Analytics') label = t.analysis || "Analysis"; // Fallback
+
 
           const isFocused = state.index === index;
 
@@ -137,7 +144,7 @@ const Navbar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
               color={isMenuOpen ? activeColor : inactiveColor} 
            />
           <Text style={{ color: isMenuOpen ? activeColor : inactiveColor }} className="text-xs">
-            Menu
+            {t.menu}
           </Text>
         </Pressable>
       </View>

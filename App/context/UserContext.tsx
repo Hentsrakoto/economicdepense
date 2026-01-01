@@ -12,6 +12,8 @@ interface UserSettings {
   currency: Currency;
   isOnboarded: boolean;
   theme: 'light' | 'dark' | 'system';
+  principalFund: number;
+  revenueTypes: string[];
 }
 
 interface UserContextType {
@@ -30,6 +32,8 @@ const defaultSettings: UserSettings = {
   currency: 'MGA',
   isOnboarded: false,
   theme: 'system',
+  principalFund: 0,
+  revenueTypes: [],
 };
 
 const UserContext = createContext<UserContextType>({
@@ -71,19 +75,33 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateSettings = async (newSettings: Partial<UserSettings>) => {
-    const updated = { ...settings, ...newSettings };
-    setSettings(updated);
-    await storeData('user_settings', updated);
-  };
+  const updateSettings = React.useCallback(async (newSettings: Partial<UserSettings>) => {
+    // Optimistic update
+    setSettings(prev => {
+        const updated = { ...prev, ...newSettings };
+        storeData('user_settings', updated);
+        return updated;
+    });
+  }, []);
 
-  const toggleTheme = () => {
-      const newTheme = settings.theme === 'light' ? 'dark' : 'light';
-      updateSettings({ theme: newTheme });
-  };
+  const toggleTheme = React.useCallback(() => {
+      setSettings(prev => {
+          const newTheme: 'light' | 'dark' | 'system' = prev.theme === 'light' ? 'dark' : 'light';
+          const updated = { ...prev, theme: newTheme };
+          storeData('user_settings', updated);
+          return updated;
+      });
+  }, []);
+
+  const value = React.useMemo(() => ({
+    settings,
+    updateSettings,
+    loading,
+    toggleTheme
+  }), [settings, loading, updateSettings, toggleTheme]);
 
   return (
-    <UserContext.Provider value={{ settings, updateSettings, loading, toggleTheme }}>
+    <UserContext.Provider value={value}>
       {children}
     </UserContext.Provider>
   );

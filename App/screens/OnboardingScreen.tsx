@@ -1,11 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Badge } from '../components/ui/Badge';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Typography } from '../components/ui/Typography';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../hooks/useTheme';
-import { CURRENCIES, Currency, LANGUAGES, Language } from '../utils/i18n';
-// ...
+import { CURRENCIES, Currency, LANGUAGES, Language, translations } from '../utils/i18n';
+
 const StepIndicator = ({ currentStep, totalSteps, theme }: { currentStep: number; totalSteps: number, theme: any }) => {
   return (
     <View className="flex-row justify-between mb-8 px-2">
@@ -39,9 +44,12 @@ export default function OnboardingScreen() {
   const [name, setName] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState<Language>('fr'); 
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('MGA');
+  const [principalFund, setPrincipalFund] = useState('');
 
   const [step, setStep] = useState(1);
   const totalSteps = 3;
+
+  const t = translations[selectedLanguage] || translations.fr;
 
   const handleNext = async () => {
     if (step < totalSteps) {
@@ -58,6 +66,8 @@ export default function OnboardingScreen() {
         currency: selectedCurrency,
         isOnboarded: true,
         theme: 'light', 
+        principalFund: parseFloat(principalFund) || 0,
+        revenueTypes: [],
       });
       theme.setTheme('light'); 
     }
@@ -77,11 +87,6 @@ export default function OnboardingScreen() {
   };
 
   const bgColor = theme.isDark ? 'bg-[#121212]' : 'bg-[#F2F2EB]';
-  const textColor = theme.isDark ? 'text-white' : 'text-[#3E3E34]';
-  const subTextColor = theme.isDark ? 'text-gray-400' : 'text-[#8C8C7D]';
-  const inputBg = theme.isDark ? 'bg-[#1E1E1E]' : 'bg-white';
-  const inputBorder = theme.isDark ? 'border-gray-700' : 'border-[#D9D9C2]';
-  const buttonBg = theme.isDark ? 'bg-blue-600' : 'bg-[#8B4513]';
 
   return (
     <SafeAreaView style={{ flex: 1 }} className={bgColor}>
@@ -98,16 +103,16 @@ export default function OnboardingScreen() {
                      <Ionicons name="arrow-back" size={24} color={theme.isDark ? "white" : "#3E3E34"} />
                  </TouchableOpacity>
              )}
-            <Text className={`text-3xl font-bold mb-2 ${textColor}`}>
-                {step === 1 && "Parlons de vous"}
-                {step === 2 && "Vos origines"}
-                {step === 3 && "Votre monnaie"}
-            </Text>
-            <Text className={`text-lg ${subTextColor}`}>
-                {step === 1 && "Dites-nous comment vous appeler."}
+            <Typography variant="h1" className="mb-2">
+                {step === 1 && t.welcome}
+                {step === 2 && t.selectLanguage}
+                {step === 3 && t.selectCurrency}
+            </Typography>
+            <Typography className="text-gray-500">
+                {step === 1 && t.enterName}
                 {step === 2 && "D'où venez-vous ?"}
                 {step === 3 && "Quelle devise utilisez-vous ?"}
-            </Text>
+            </Typography>
           </View>
 
           <StepIndicator currentStep={step} totalSteps={totalSteps} theme={theme} />
@@ -116,26 +121,18 @@ export default function OnboardingScreen() {
             {/* Step 1: Name & First Name */}
             {step === 1 && (
                 <View className="space-y-6">
-                    <View>
-                        <Text className={`mb-2 font-medium ${textColor}`}>Nom</Text>
-                        <TextInput
-                            className={`${inputBg} ${textColor} p-4 rounded-xl border ${inputBorder}`}
-                            placeholder="Votre nom"
-                            placeholderTextColor={theme.isDark ? "#6b7280" : "#A0A0A0"}
-                            value={name}
-                            onChangeText={setName}
-                        />
-                    </View>
-                    <View>
-                        <Text className={`mb-2 font-medium ${textColor}`}>Prénom</Text>
-                        <TextInput
-                            className={`${inputBg} ${textColor} p-4 rounded-xl border ${inputBorder}`}
-                            placeholder="Votre prénom"
-                            placeholderTextColor={theme.isDark ? "#6b7280" : "#A0A0A0"}
-                            value={firstName}
-                            onChangeText={setFirstName}
-                        />
-                    </View>
+                    <Input
+                        label={t.name}
+                        placeholder="Doe"
+                        value={name}
+                        onChangeText={setName}
+                    />
+                    <Input
+                        label={t.firstName}
+                        placeholder="John"
+                        value={firstName}
+                        onChangeText={setFirstName}
+                    />
                 </View>
             )}
 
@@ -143,43 +140,33 @@ export default function OnboardingScreen() {
             {step === 2 && (
                 <View className="space-y-6">
                     <View>
-                        <Text className={`mb-2 font-medium ${textColor}`}>Langue préférée</Text>
+                        <Typography className="mb-2 font-medium">{t.preferredLanguage}</Typography>
                          <View className="flex-row flex-wrap gap-2">
                             {LANGUAGES.map((lang) => (
-                                <TouchableOpacity
+                                <Badge
                                     key={lang.value}
+                                    selected={selectedLanguage === lang.value}
                                     onPress={() => setSelectedLanguage(lang.value as Language)}
-                                    className={`px-4 py-2 rounded-full border ${
-                                        selectedLanguage === lang.value
-                                        ? (theme.isDark ? 'bg-blue-600 border-blue-600' : 'bg-[#8B4513] border-[#8B4513]')
-                                        : `${inputBg} ${inputBorder}`
-                                    }`}
+                                    className="px-4 py-2" // increased padding manually instead of size prop
                                 >
-                                    <Text className={selectedLanguage === lang.value ? 'text-white font-bold' : textColor}>
-                                        {lang.label}
-                                    </Text>
-                                </TouchableOpacity>
+                                    {lang.label}
+                                </Badge>
                             ))}
                          </View>
                     </View>
                     
                     <View>
-                        <Text className={`mb-2 font-medium ${textColor}`}>Nationalité / Région</Text>
+                        <Typography className="mb-2 font-medium">Nationalité / Région</Typography>
                         <View className="flex-row flex-wrap gap-2">
                              {REGION_OPTIONS.map((reg) => (
-                                <TouchableOpacity
+                                <Badge
                                     key={reg.value}
+                                    selected={selectedLanguage === reg.value}
                                     onPress={() => setSelectedLanguage(reg.value as Language)}
-                                    className={`px-4 py-2 rounded-full border ${
-                                        selectedLanguage === reg.value
-                                        ? (theme.isDark ? 'bg-blue-600 border-blue-600' : 'bg-[#8B4513] border-[#8B4513]')
-                                        : `${inputBg} ${inputBorder}`
-                                    }`}
+                                    className="px-4 py-2"
                                 >
-                                    <Text className={selectedLanguage === reg.value ? 'text-white font-bold' : textColor}>
-                                        {reg.label}
-                                    </Text>
-                                </TouchableOpacity>
+                                    {reg.label}
+                                </Badge>
                              ))}
                         </View>
                     </View>
@@ -193,39 +180,54 @@ export default function OnboardingScreen() {
                     <TouchableOpacity
                         key={curr.value}
                         onPress={() => setSelectedCurrency(curr.value as Currency)}
-                        className={`w-[48%] p-4 rounded-xl border flex-row items-center justify-between ${
-                            selectedCurrency === curr.value 
-                            ? (theme.isDark ? 'bg-blue-600/20 border-blue-600' : 'bg-[#8B4513]/10 border-[#8B4513]') 
-                            : `${inputBg} ${inputBorder}`
-                        }`}
+                        className="w-[48%]"
                     >
-                        <View>
-                             <Text className={`font-bold text-lg ${textColor}`}>{curr.symbol}</Text>
-                             <Text className={`text-sm ${subTextColor}`}>{curr.label}</Text>
-                        </View>
-                        {selectedCurrency === curr.value && (
-                            <Ionicons name="checkmark-circle" size={24} color={theme.isDark ? "#3b82f6" : "#8B4513"} />
-                        )}
+                        <Card 
+                            className={`p-4 border ${selectedCurrency === curr.value ? 'border-primary bg-primary/10' : ''}`}
+                        >
+                            <View className="flex-row justify-between items-start">
+                                <View>
+                                     <Typography variant="h3">{curr.symbol}</Typography>
+                                     <Typography variant="caption">{curr.label}</Typography>
+                                </View>
+                                {selectedCurrency === curr.value && (
+                                    <Ionicons name="checkmark-circle" size={24} color={theme.isDark ? "#3b82f6" : "#8B4513"} />
+                                )}
+                            </View>
+                        </Card>
                     </TouchableOpacity>
                     ))}
+                    
+                    <View className="w-full mt-4">
+                        <Input
+                             label={t.principalFund}
+                             placeholder="0.00"
+                             keyboardType="numeric"
+                             value={principalFund}
+                             onChangeText={setPrincipalFund}
+                        />
+                        <Typography variant="caption" className="mt-2 text-right">
+                           {CURRENCIES.find(c => c.value === selectedCurrency)?.symbol}
+                        </Typography>
+                    </View>
                 </View>
             )}
           </View>
 
           {/* Footer Buttons */}
           <View className="mt-8">
-            <TouchableOpacity
+            <Button
                 onPress={handleNext}
                 disabled={!isStepValid()}
-                className={`p-4 rounded-xl items-center flex-row justify-center space-x-2 ${
-                    isStepValid() ? buttonBg : 'bg-gray-400 opacity-50'
-                }`}
+                className={!isStepValid() ? 'opacity-50' : ''}
             >
-                <Text className="text-white font-bold text-lg">
-                    {step === totalSteps ? "Commencer" : "Suivant"}
-                </Text>
-                {step < totalSteps && <Ionicons name="arrow-forward" size={20} color="white" />}
-            </TouchableOpacity>
+               <View className="flex-row items-center space-x-2">
+                   <Typography className="text-white font-bold text-lg mr-2">
+                        {step === totalSteps ? t.start : "Suivant"}
+                   </Typography>
+                   {step < totalSteps && <Ionicons name="arrow-forward" size={20} color="white" />}
+               </View>
+            </Button>
           </View>
 
         </ScrollView>
